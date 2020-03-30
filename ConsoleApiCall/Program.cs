@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
+using RestSharp;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 
 namespace ConsoleApiCall
 {
@@ -6,7 +11,39 @@ namespace ConsoleApiCall
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var apiCallTask = ApiHelper.ApiCall("jpJQb2NFsSYFaea6rRk5BXsjts3gvFkD");
+            var result = apiCallTask.Result;
+            JObject jsonResponse = JsonConvert.DeserializeObject<JObject>(result);
+            List<Article> articleList = JsonConvert.DeserializeObject<List<Article>>(jsonResponse["results"].ToString());
+
+            foreach (Article article in articleList)
+            {
+                Console.WriteLine($"Section: {article.Section}");
+                Console.WriteLine($"Title: {article.Title}");
+                Console.WriteLine($"Abstract: {article.Abstract}");
+                Console.WriteLine($"Url: {article.Url}");
+                Console.WriteLine($"Byline: {article.Byline}");
+            }
         }
+    }
+
+    class ApiHelper
+    {
+        public static async Task<string> ApiCall(string apiKey)
+        {
+        RestClient client = new RestClient("https://api.nytimes.com/svc/topstories/v2");
+        RestRequest request = new RestRequest($"home.json?api-key={apiKey}", Method.GET);
+        var response = await client.ExecuteTaskAsync(request);
+        return response.Content;
+        }
+    }
+
+    public class Article
+    {
+        public string Section { get; set; }
+        public string Title { get; set; }
+        public string Abstract { get; set; }
+        public string Url { get; set; }
+        public string Byline { get; set; }
     }
 }
